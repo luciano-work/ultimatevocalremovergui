@@ -6604,7 +6604,8 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
                     set_progress_bar = lambda step, inference_iterations=0:self.process_update_progress(total_files=inputPath_total_len, step=(step + (inference_iterations)))
                     write_to_console = lambda progress_text, base_text=base_text:self.command_Text.write(base_text + progress_text)
 
-                    audio_file_base = f"{file_num}_{os.path.splitext(os.path.basename(audio_file))[0]}"
+                    # audio_file_base = f"{file_num}_{os.path.splitext(os.path.basename(audio_file))[0]}"
+                    audio_file_base = f"{os.path.splitext(os.path.basename(audio_file))[0]}"
                     audio_file_base = audio_file_base if not self.is_testing_audio_var.get() or is_ensemble else f"{round(time.time())}_{audio_file_base}"
                     audio_file_base = audio_file_base if not is_ensemble else f"{audio_file_base}_{current_model.model_basename}"
                     if not is_ensemble:

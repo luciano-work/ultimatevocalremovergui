@@ -32,6 +32,7 @@ import math
 from onnx import load
 from onnx2pytorch import ConvertModel
 import gc
+from mutagen.id3 import ID3
  
 if TYPE_CHECKING:
     from UVR import ModelData
@@ -389,8 +390,11 @@ class SeperateAttributes:
             source = spec_utils.normalize(source, self.is_normalization)
             sf.write(path, source, samplerate, subtype=self.wav_type_set)
 
+            # original_tags = MediaFile(self.audio_file)
+            original_tags = ID3(self.audio_file)
+            
             if is_not_ensemble:
-                save_format(path, self.save_format, self.mp3_bit_set)
+                save_format(path, self.save_format, self.mp3_bit_set, original_tags)
 
         def save_voc_split_instrumental(stem_name, stem_source, is_inst_invert=False):
             inst_stem_name = "Instrumental (With Lead Vocals)" if stem_name == LEAD_VOCAL_STEM else "Instrumental (With Backing Vocals)"
@@ -1307,7 +1311,7 @@ def rerun_mp3(audio_file, sample_rate=44100):
 
     return librosa.load(audio_file, duration=track_length, mono=False, sr=sample_rate)[0]
 
-def save_format(audio_path, save_format, mp3_bit_set):
+def save_format(audio_path, save_format, mp3_bit_set, original_tags=None):
     
     if not save_format == WAV:
         
@@ -1315,7 +1319,7 @@ def save_format(audio_path, save_format, mp3_bit_set):
             FFMPEG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ffmpeg')
             pydub.AudioSegment.converter = FFMPEG_PATH
         
-        musfile = pydub.AudioSegment.from_wav(audio_path)
+        musfile = pydub.AudioSegment.from_wav(audio_path)      
         
         if save_format == FLAC:
             audio_path_flac = audio_path.replace(".wav", ".flac")
@@ -1325,6 +1329,12 @@ def save_format(audio_path, save_format, mp3_bit_set):
             audio_path_mp3 = audio_path.replace(".wav", ".mp3")
             try:
                 musfile.export(audio_path_mp3, format="mp3", bitrate=mp3_bit_set, codec="libmp3lame")
+                
+                if original_tags:
+                    source_tags = ID3(audio_path_mp3)
+                    source_tags.update(original_tags)
+                    source_tags.save()
+                
             except Exception as e:
                 print(e)
                 musfile.export(audio_path_mp3, format="mp3", bitrate=mp3_bit_set)
