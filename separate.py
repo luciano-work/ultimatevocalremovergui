@@ -390,11 +390,8 @@ class SeperateAttributes:
             source = spec_utils.normalize(source, self.is_normalization)
             sf.write(path, source, samplerate, subtype=self.wav_type_set)
 
-            # original_tags = MediaFile(self.audio_file)
-            original_tags = ID3(self.audio_file)
-            
             if is_not_ensemble:
-                save_format(path, self.save_format, self.mp3_bit_set, original_tags)
+                save_format(path, self.save_format, self.mp3_bit_set, self.audio_file)
 
         def save_voc_split_instrumental(stem_name, stem_source, is_inst_invert=False):
             inst_stem_name = "Instrumental (With Lead Vocals)" if stem_name == LEAD_VOCAL_STEM else "Instrumental (With Backing Vocals)"
@@ -1311,7 +1308,7 @@ def rerun_mp3(audio_file, sample_rate=44100):
 
     return librosa.load(audio_file, duration=track_length, mono=False, sr=sample_rate)[0]
 
-def save_format(audio_path, save_format, mp3_bit_set, original_tags=None):
+def save_format(audio_path, save_format, mp3_bit_set, audio_file):
     
     if not save_format == WAV:
         
@@ -1323,17 +1320,14 @@ def save_format(audio_path, save_format, mp3_bit_set, original_tags=None):
         
         if save_format == FLAC:
             audio_path_flac = audio_path.replace(".wav", ".flac")
-            musfile.export(audio_path_flac, format="flac")  
+            musfile.export(audio_path_flac, format="flac")
+            copy_id3_tags(audio_file, audio_path_flac)
         
         if save_format == MP3:
             audio_path_mp3 = audio_path.replace(".wav", ".mp3")
             try:
                 musfile.export(audio_path_mp3, format="mp3", bitrate=mp3_bit_set, codec="libmp3lame")
-                
-                if original_tags:
-                    source_tags = ID3(audio_path_mp3)
-                    source_tags.update(original_tags)
-                    source_tags.save()
+                copy_id3_tags(audio_file, audio_path_mp3)
                 
             except Exception as e:
                 print(e)
@@ -1467,3 +1461,9 @@ def loading_mix(X, mp):
     del X_wave, X_spec_s
 
     return X_spec
+
+def copy_id3_tags(source, target):
+    source_tags = ID3(source)
+    target_tags = ID3(target)
+    target_tags.update(source_tags)
+    target_tags.save()
