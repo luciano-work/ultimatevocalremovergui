@@ -6,8 +6,8 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        ('gui_data', '.'),
-        ('models', '.'),
+        ('gui_data/*', '.'),
+        ('models/*', '.'),
         ('ffmpeg.exe', '.'),
         ('ffplay.exe', '.'),
         ('ffprobe.exe', '.'),
