@@ -1,4 +1,6 @@
 *.exe
 *.dll
+*.pkl
 \build
 \dist
+**/__pycache__/
